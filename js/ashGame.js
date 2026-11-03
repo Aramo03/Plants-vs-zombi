@@ -37,7 +37,7 @@ let plantCards = [
         bullet: {
            img: "/ero-images/bullet.png",
 
-            damage: 10,
+            damage: 20,
         },
         removePlant() {
             this.health = 0
@@ -102,18 +102,73 @@ let plantCards = [
         }
     }
 ]
+//SPAWNING SUNS/////////////////////////////////////////////////////////////////
+function spawnsun() {
+    const sun = document.createElement("img")
+    sun.src = "/ero-images/sun.png"
+    sun.alt = "Sun"
+    sun.classList.add("sun")
+    sun.style.position = "absolute"
+    sun.style.left = `${Math.random() * (arena.offsetWidth - 50)}px`
+    sun.style.top = `${Math.random() * (arena.offsetHeight - 50)}px`
+    sun.style.width = "50px"
+    sun.style.height = "50px"
+    sun.style.cursor = "pointer"
+
+    sun.addEventListener("click", (event) => {
+        event.stopPropagation()
+        user.addBank(25)
+        sun.remove()
+    })
+    arena.appendChild(sun)
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+//garox shooting bullets/////////////////////////////////////////////////////////////////
 function moveBullets() {
     bullets.forEach((bullet) => {
         const newLeft = parseInt(bullet.style.left) + 5
         bullet.style.left = `${newLeft}px`
-
+        const target = zombies.find((zombie) => isHit(bullet, zombie))
+        if (target) {
+            hitZombie(bullet, target)
+            return
+        }
         if (newLeft > arena.offsetWidth) {
             bullet.remove()
             bullets = bullets.filter((item) => item !== bullet)
         }
     })
 }
-setInterval(moveBullets, 50)
+
+
+function isHit(bullet, zombie) {
+    const b = bullet.getBoundingClientRect()
+    const z = zombie.getBoundingClientRect()
+
+    return b.right >= z.left && b.left <= z.right &&
+           b.bottom >= z.top && b.top <= z.bottom
+}
+
+function hitZombie(bullet, zombie) {
+    bullet.remove()
+    bullets = bullets.filter((item) => item !== bullet)
+
+    zombie.health -= 20
+
+    if (zombie.health <= 0) {
+        zombie.remove()
+        zombies = zombies.filter((item) => item !== zombie)
+    }
+}
+/////////////////////////////////////////////////////////////////////////////////////////////
+//ZOMBIES/////////////////////////////////////////////////////////////////////////////////////////
 function createZombie() {
     const row = Math.floor(Math.random() * 5)
 
@@ -138,14 +193,36 @@ function createZombie() {
 }
 function moveZombies() {
     zombies.forEach((zombie) => {
+        const plantCell = findPlant(zombie)
+
+        if (plantCell) {
+            eatPlant(plantCell)
+            return
+        }
+
         const currentLeft = parseInt(zombie.style.left)
         const newLeft = currentLeft - 10
 
         zombie.style.left = `${newLeft}px`
     })
 }
-// setInterval(createZombie, 10000)
-// setInterval(moveZombies, 1000)
+function findPlant(zombie) {
+    
+      return Array.from(cells).find((cell) => {
+        const plantImg = cell.querySelector("img")
+        return plantImg && isHit(plantImg, zombie)
+    })
+}
+function eatPlant(cell) {
+    cell.plantHealth -= 10
+
+    if (cell.plantHealth <= 0) {
+        clearInterval(cell.plantTimer)
+        cell.innerHTML = ""
+    }
+}
+
+
 let zombie = {
     health: 100,
     attack: 10,
@@ -163,6 +240,7 @@ let zombie = {
         return plant.health
     },
 }
+/////////////////////////////////////////////////////////////////////////////////////////////
 
 function createArena() {
     const arena = document.querySelector(".ero_arena");
@@ -174,7 +252,12 @@ function createArena() {
 
     }
 }
-createArena();
+createArena()                    
+setInterval(spawnsun, 10000)     
+setInterval(moveBullets, 50)      
+setInterval(createZombie, 5000)    
+setInterval(moveZombies, 1000)     
+
 
 let cells = document.querySelectorAll(".ero_cell")
 
@@ -208,13 +291,17 @@ cells.forEach((cell) => {
         if (user.bank < selectedPlant.cost) return
 
         user.removeBank(selectedPlant.cost)
-        if (selectedPlant.name === "gorox") {
-            selectedPlant.startShooting(cell)
-        }
         cell.innerHTML = `<img src="${selectedPlant.img}" alt="plant">`
-            if (selectedPlant.name === "podsolnux") {
-                selectedPlant.spamSun(cell)
-            }
+        cell.plantHealth = selectedPlant.health
+
+        if (selectedPlant.name === "gorox") {
+            
+            cell.plantTimer = selectedPlant.startShooting(cell)
+        }
+        if (selectedPlant.name === "podsolnux") {
+            cell.plantTimer = selectedPlant.spamSun(cell)
+        }
+            
 
         selectedPlant = null
         plantCards.forEach((item) => item.plant.classList.remove("selected"))
