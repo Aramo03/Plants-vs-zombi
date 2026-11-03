@@ -6,6 +6,11 @@ let selectedPlant = null
 let sun_count = document.querySelector(".suns")
 let zombies = []
 let bullets = []
+let gameStarted = false
+let gameTimers = []
+const startButton = document.querySelector("#start-game")
+const shovelButton = document.querySelector("#shovel")
+let shovelActive = false
 
 let user = {
     name: "User",
@@ -44,7 +49,17 @@ let plantCards = [
             this.remove()
         },
         startShooting(cell) {
+            const row = Math.floor(cell.offsetTop / 100)
+
             return setInterval(() => {
+                const seesZombie = zombies.some((zombie) => {
+                    const zombieLeft = parseInt(zombie.style.left)
+                    return zombie.row === row &&
+                        zombieLeft > cell.offsetLeft &&
+                        zombieLeft < arena.offsetWidth
+                })
+                if (!seesZombie) return
+
                 const bullet = document.createElement("img")
                 bullet.src = this.bullet.img
                 bullet.alt = "Bullet"
@@ -87,6 +102,7 @@ let plantCards = [
             })
 
             cell.appendChild(sun)
+            setTimeout(() => sun.remove(), 7000)
             }, 15000)
         }
     },
@@ -121,6 +137,7 @@ function spawnsun() {
         sun.remove()
     })
     arena.appendChild(sun)
+    setTimeout(() => sun.remove(), 7000)
 }
 
 
@@ -205,6 +222,24 @@ function moveZombies() {
 
         zombie.style.left = `${newLeft}px`
     })
+
+    if (zombies.some((zombie) => parseInt(zombie.style.left) <= 0)) {
+        endGame()
+    }
+}
+function endGame() {
+    gameStarted = false
+
+    gameTimers.forEach((timer) => clearInterval(timer))
+    cells.forEach((cell) => clearInterval(cell.plantTimer))
+
+    const message = document.createElement("div")
+    message.classList.add("game_over")
+    message.innerHTML = `
+        <h1>GAME OVER</h1>
+        <button onclick="location.reload()">Play Again</button>
+    `
+    arena.appendChild(message)
 }
 function findPlant(zombie) {
     
@@ -217,9 +252,12 @@ function eatPlant(cell) {
     cell.plantHealth -= 10
 
     if (cell.plantHealth <= 0) {
-        clearInterval(cell.plantTimer)
-        cell.innerHTML = ""
+        removePlant(cell)
     }
+}
+function removePlant(cell) {
+    clearInterval(cell.plantTimer)
+    cell.innerHTML = ""
 }
 
 
@@ -252,11 +290,19 @@ function createArena() {
 
     }
 }
-createArena()                    
-setInterval(spawnsun, 10000)     
-setInterval(moveBullets, 50)      
-setInterval(createZombie, 5000)    
-setInterval(moveZombies, 1000)     
+createArena()     
+startButton.addEventListener("click", () => {
+    gameStarted = true
+    startButton.style.display = "none"
+
+    gameTimers = [
+        setInterval(spawnsun, 10000),
+        setInterval(moveBullets, 50),
+        setInterval(createZombie, 5000),
+        setInterval(moveZombies, 1000)
+    ]
+})               
+   
 
 
 let cells = document.querySelectorAll(".ero_cell")
@@ -274,8 +320,20 @@ let cells = document.querySelectorAll(".ero_cell")
 
 //     })
 // })
+function setShovel(active) {
+    shovelActive = active
+    shovelButton.classList.toggle("selected", active)
+}
+
+shovelButton.addEventListener("click", () => {
+    setShovel(!shovelActive)
+    selectedPlant = null
+    plantCards.forEach((item) => item.plant.classList.remove("selected"))
+})
+
 plantCards.forEach((card) => {
     card.plant.addEventListener("click", () => {
+        setShovel(false)
         selectedPlant = card
         
         plantCards.forEach((item) => item.plant.classList.remove("selected"))
@@ -285,7 +343,15 @@ plantCards.forEach((card) => {
 })
 
 cells.forEach((cell) => {
-    cell.addEventListener("click", () => {
+   cell.addEventListener("click", () => {
+        if (!gameStarted) return
+
+        if (shovelActive) {
+            removePlant(cell)
+            setShovel(false)
+            return
+        }
+
         if (!selectedPlant) return
         if (cell.querySelector("img")) return
         if (user.bank < selectedPlant.cost) return
