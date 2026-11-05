@@ -1,24 +1,134 @@
+.ero_esim {
+    box-sizing: border-box;
+    padding: 10px;
+    background: #462b20;
+    width: 1070px;
+    height: 525px;
+    display: flex;
+    gap: 10px;
+    border: 2px solid #80552f;
+    border-radius: 8px;
+}
+
+#start-game,
+#shovel,
+#back-to-home {
+    margin: 12px 8px 12px 0;
+    padding: 9px 16px;
+    border: 1px solid #579a30;
+    border-radius: 6px;
+    background: #347d20;
+    color: white;
+    font: 700 16px Arial, sans-serif;
+    cursor: pointer;
+    transition: background-color .15s ease;
+}
+
+#start-game {
+    background: #d99a26;
+    border-color: #b77b18;
+    color: #24180b;
+}
+
+#start-game:hover {
+    background: #edb33d;
+}
+
+#shovel:hover,
+#back-to-home:hover {
+    background: #45912d;
+}
+
+#back-to-home a {
+    color: inherit;
+}
+
+.suns {
+    display: inline-block;
+    padding: 10px 16px;
+    border: 1px solid #80552f;
+    border-radius: 6px;
+    background: #392218;
+    color: #ffe478;
+    font: 700 18px Arial, sans-serif;
+}
+
+.ero_nav {
+    box-sizing: border-box;
+    width: 140px;
+    height: 100%;
+    flex: 0 0 140px;
+    padding: 8px;
+    background: #382019;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    gap: 8px;
+    border: 1px solid #80522d;
+    border-radius: 6px;
+}
+
+.gorox,
+.podsolnux,
+.orex {
+    width: 100%;
+    height: 150px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+    flex-direction: column;
+    border: 2px solid #579a30;
+    color: white;
+    background: #2f1411;
+    cursor: pointer;
+    transition: border-color .15s ease, background-color .15s ease;
+}
+
+.gorox:hover,
+.podsolnux:hover,
+.orex:hover {
+    border-color: #f7d84a;
+    background: #43251a;
+}
+
+.gorox.selected,
+.podsolnux.selected,
+.orex.selected,
+.selectedPlant {
+    border: 3px solid #ffe14b;
+}
+
+.plant-cost {
+    padding: 4px 12px;
+    border-radius: 4px;
+    background: #172417;
+    color: #ffe477;
+    font: 700 16px Arial, sans-serif;
+}
+
 .ero_cell {
     width: auto;
     height: auto;
     background-color: rgb(0, 67, 4);
+    position: relative;
+
+
+}
+
+.ero_cell .sun {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 50px;
+    height: 50px;
+    cursor: pointer;
 }
 
 .ero_cell img {
     object-fit: contain;
     width: 80px;
     height: 80px;
-}
-
-.ero_esim {
-    padding: 10px;
-    background-color: rgb(70, 42, 34);
-    width: 1070px;
-    height: 505px;
-    display: flex;
-    justify-content: space-between;
-
-
 }
 
 .planted_plant {
@@ -33,27 +143,22 @@
 
 
 .ero_arena {
-    width: 910px;
-    height: 505px;
+    flex: 1;
+    min-width: 0;
+    height: 100%;
     background-color: rgb(2, 82, 8);
     display: grid;
     grid-template-columns: repeat(9, 1fr);
     grid-template-rows: repeat(5, 1fr);
     gap: 1px;
+    position: relative;
+    overflow: hidden;
 }
+
 
 .ero_cell:nth-child(even) {
     background-color: #028d3c;
 
-}
-
-.ero_nav {
-    width: 150px;
-    height: 505px;
-    background-color: #41221f;
-    display: grid;
-    grid-template-rows: 1fr 1fr 1fr;
-    gap: 10px;
 }
 
 .plant {
@@ -61,45 +166,18 @@
     height: 110px;
 }
 
-.gorox {
-    height: 150px;
-    width: 120px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    /* justify-content: center; */
-    flex-direction: column;
-    border: #317b06 2px solid;
-    color: white;
-    background-color: #2f1411;
+.zombie {
+    pointer-events: none;
 }
 
-.podsolnux {
-    height: 150px;
-    width: 120px;
-    border-radius: 10px;
+.game_over {
+    position: absolute;
+    inset: 0;
+    z-index: 10;
     display: flex;
-    align-items: center;
-    /* justify-content: center; */
     flex-direction: column;
-    border: #317b06 2px solid;
-    color: white;
-    background-color: #2f1411;
-}
-
-.orex {
-    height: 150px;
-    width: 120px;
-    border-radius: 10px;
-    display: flex;
     align-items: center;
-    /* justify-content: center; */
-    flex-direction: column;
-    border: #317b06 2px solid;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.7);
     color: white;
-    background-color: #2f1411;
-}
-
-.selectedPlant {
-    border: 2px solid yellow;
 }
