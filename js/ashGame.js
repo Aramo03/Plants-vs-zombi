@@ -8,6 +8,16 @@ let zombies = []
 let bullets = []
 let gameStarted = false
 let gameTimers = []
+const waves = [
+    { zombies: 5, spawnTime: 5000 },
+    { zombies: 8, spawnTime: 4000 },
+    { zombies: 12, spawnTime: 3000 }
+]
+const timeBetweenWaves = 5000
+const waveLabel = document.querySelector(".wave")
+let waveIndex = 0
+let zombiesSpawned = 0
+let spawnTimer = null
 const startButton = document.querySelector("#start-game")
 const shovelButton = document.querySelector("#shovel")
 let shovelActive = false
@@ -182,11 +192,36 @@ function hitZombie(bullet, zombie) {
     if (zombie.health <= 0) {
         zombie.remove()
         zombies = zombies.filter((item) => item !== zombie)
+
+        checkWaveEnd()
     }
 }
 /////////////////////////////////////////////////////////////////////////////////////////////
 //ZOMBIES/////////////////////////////////////////////////////////////////////////////////////////
+function startWave() {
+    zombiesSpawned = 0
+    waveLabel.textContent = `Wave: ${waveIndex + 1} / ${waves.length}`
+    spawnTimer = setInterval(createZombie, waves[waveIndex].spawnTime)
+}
+function checkWaveEnd() {
+    const allSpawned = zombiesSpawned === waves[waveIndex].zombies
+    if (!allSpawned || zombies.length > 0) return
+
+    if (waveIndex === waves.length - 1) {
+        endGame("YOU WIN")
+        return
+    }
+
+    waveIndex++
+    waveLabel.textContent = "Next wave is coming..."
+    setTimeout(startWave, timeBetweenWaves)
+}
 function createZombie() {
+    zombiesSpawned++
+    if (zombiesSpawned === waves[waveIndex].zombies) {
+        clearInterval(spawnTimer)
+    }
+
     const row = Math.floor(Math.random() * 5)
 
     const zombieimg = document.createElement("img")
@@ -224,19 +259,20 @@ function moveZombies() {
     })
 
     if (zombies.some((zombie) => parseInt(zombie.style.left) <= 0)) {
-        endGame()
+        endGame("GAME OVER")
     }
 }
-function endGame() {
+function endGame(text) {
     gameStarted = false
 
     gameTimers.forEach((timer) => clearInterval(timer))
+    clearInterval(spawnTimer)
     cells.forEach((cell) => clearInterval(cell.plantTimer))
 
     const message = document.createElement("div")
     message.classList.add("game_over")
     message.innerHTML = `
-        <h1>GAME OVER</h1>
+        <h1>${text}</h1>
         <button onclick="location.reload()">Play Again</button>
     `
     arena.appendChild(message)
@@ -298,9 +334,9 @@ startButton.addEventListener("click", () => {
     gameTimers = [
         setInterval(spawnsun, 10000),
         setInterval(moveBullets, 50),
-        setInterval(createZombie, 5000),
         setInterval(moveZombies, 1000)
     ]
+    startWave()
 })               
    
 
